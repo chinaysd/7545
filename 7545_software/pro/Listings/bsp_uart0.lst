@@ -1,0 +1,140 @@
+C51 COMPILER V9.59.0.0   BSP_UART0                                                         03/30/2019 14:27:41 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE BSP_UART0
+OBJECT MODULE PLACED IN .\Objects\bsp_uart0.obj
+COMPILER INVOKED BY: E:\MDK\C51\BIN\C51.EXE ..\bsp\bsp_uart0.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\bsp;..\lib;..\user) DE
+                    -BUG OBJECTEXTEND PRINT(.\Listings\bsp_uart0.lst) TABS(7) OBJECT(.\Objects\bsp_uart0.obj)
+
+line level    source
+
+   1          #include "bsp_uart0.h"
+   2          #include "system.h"
+   3          
+   4          unsigned char UartSendFlag,UartReceiveFlag;
+   5          unsigned char Rev_Num,Rev_Data,Rev_String[REV_BUF_SIZE];
+   6          
+   7          
+   8          void Uart0_Init(unsigned char Freq,unsigned int baud)
+   9          {
+  10   1             P0CON &= 0xF3;   //TX/RX设置为输入带上拉
+  11   1             P0PH  |= 0x0C;
+  12   1          
+  13   1             SCON  |= 0X50;   //设置通信方式为模式一，允许接收
+  14   1             TMCON |= 0X02;
+  15   1             TH1 = (Freq*1000000/baud)>>8;        //波特率为T1的溢出时间；
+  16   1             TL1 = Freq*1000000/baud;
+  17   1             TR1 = 0;
+  18   1             ET1 = 0;
+  19   1             EUART = 1;     //开启Uart0中断     
+  20   1      }
+  21          
+  22          static void Send_byte(unsigned char Byte)
+  23          {
+  24   1             SBUF = Byte;
+  25   1             while(!UartSendFlag);
+  26   1             UartSendFlag = 0;
+  27   1      }
+  28          
+  29          static unsigned char Send_Data(PROTOCOL_TX *p)
+  30          {
+  31   1             static unsigned char i;
+  32   1             for(i = 0;i < BUF_TX_SIZE;i ++)
+  33   1             {
+  34   2                    Send_byte(p->Buf[i]);
+  35   2             }
+  36   1             return 0;
+  37   1      }
+  38          
+  39          unsigned char Protocol_Send(unsigned char addr,unsigned char id,unsigned char TX_DATA)
+  40          {
+  41   1             PROTOCOL_TX buf;
+  42   1             memset(&buf,0,sizeof(buf));
+  43   1             buf.Data0_Format.ADDR = addr;
+  44   1             buf.Data0_Format.ID      = id;
+  45   1             buf.Data0_Format.DATA1 = Hight(TX_DATA);
+  46   1             buf.Data0_Format.DATA2 = Low(TX_DATA);
+  47   1             buf.Data0_Format.CHECKSUM = (unsigned char)(buf.Data0_Format.ADDR + buf.Data0_Format.ID + buf.Data0_Forma
+             -t.DATA1 + buf.Data0_Format.DATA2);
+  48   1             buf.Data0_Format.STOP1 = 0X0D;
+  49   1             buf.Data0_Format.STOP2 = 0X0A;
+  50   1             return Send_Data(&buf);
+  51   1      }
+  52          
+  53          unsigned char IF_REV_ALL(void)
+C51 COMPILER V9.59.0.0   BSP_UART0                                                         03/30/2019 14:27:41 PAGE 2   
+
+  54          {
+  55   1             if(Rev_Num & 0X80)
+  56   1             {
+  57   2                   Rev_Num = 0x00;
+  58   2                   return 1;
+  59   2             }
+  60   1             else
+  61   1             {
+  62   2                    return 0;
+  63   2             }
+  64   1      }
+  65          
+  66          void Rev_Data_Handle(void)
+  67          {
+  68   1             Rev_Data = SBUF;
+  69   1             if((Rev_Num & 0x80) == 0)
+  70   1             {
+  71   2                    if(Rev_Num & 0x40)
+  72   2                    {
+  73   3                           if(Rev_Data == 0x0a)
+  74   3                           {
+  75   4                                  Rev_Num |= 0x80;
+  76   4                           }
+  77   3                           else
+  78   3                           {
+  79   4                                  Rev_Num &= 0x00;
+  80   4                           }
+  81   3                    }
+  82   2                    else
+  83   2                    {
+  84   3                           if(Rev_Data == 0x0d)
+  85   3                           {
+  86   4                                  Rev_Num |= 0x40;
+  87   4                           }
+  88   3                           else
+  89   3                           {
+  90   4                                  Rev_String[Rev_Num] = Rev_Data;
+  91   4                                  Rev_Num ++;
+  92   4                                  if(Rev_String[0] != 0xfa)
+  93   4                                  {
+  94   5                                         Rev_Num &= 0x00;
+  95   5                                  }
+  96   4                                  if(Rev_Num > REV_BUF_SIZE)
+  97   4                                  {
+  98   5                                         Rev_Num &= 0x00;
+  99   5                                  }
+ 100   4                           }
+ 101   3                    }
+ 102   2             }
+ 103   1      }
+ 104          
+ 105          
+ 106          
+ 107          
+ 108          
+ 109          
+ 110          
+ 111          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    306    ----
+C51 COMPILER V9.59.0.0   BSP_UART0                                                         03/30/2019 14:27:41 PAGE 3   
+
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     12      16
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,4 @@
+---- simulate_uart_init Matches (3 in 3 files) ----
+simulate_uart.c (C:\Users\Administrator\Desktop\7545\7545_software\bsp):void simulate_uart_init(void)
+simulate_uart.h (C:\Users\Administrator\Desktop\7545\7545_software\bsp):void simulate_uart_init(void);
+system.c (C:\Users\Administrator\Desktop\7545\7545_software\user):       simulate_uart_init();

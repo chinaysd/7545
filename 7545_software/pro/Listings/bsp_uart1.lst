@@ -1,0 +1,143 @@
+C51 COMPILER V9.59.0.0   BSP_UART1                                                         03/29/2019 21:21:59 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE BSP_UART1
+OBJECT MODULE PLACED IN .\Objects\bsp_uart1.obj
+COMPILER INVOKED BY: E:\MDK\C51\BIN\C51.EXE ..\bsp\bsp_uart1.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\bsp;..\lib;..\user) DE
+                    -BUG OBJECTEXTEND PRINT(.\Listings\bsp_uart1.lst) TABS(7) OBJECT(.\Objects\bsp_uart1.obj)
+
+line level    source
+
+   1          #include "bsp_uart1.h"
+   2          #include "string.h"
+   3          
+   4          
+   5          unsigned char Uart1SendFlag,Uart1ReceiveFlag;
+   6          unsigned char Uart1_Rev_Num,Uart1_Rev_Data,Uart1_Send_String[UART1_REV_BUF_SIZE];
+   7          
+   8          
+   9          
+  10          void Uart1_Init(unsigned char Freq,unsigned int baud)
+  11          {
+  12   1             P1CON &= 0xF5;   //TX/RX设置为输入带上拉
+  13   1             P1PH  |= 0x0A;
+  14   1             
+  15   1             OTCON |= 0xC0;    //串行接口SSI选择Uart1通信
+  16   1             SSCON0 = 0x50;   //设置通信方式为模式一，允许接收
+  17   1             SSCON1 = Freq*1000000/baud;   //波特率低位控制
+  18   1             SSCON2 = (Freq*1000000/baud)>>8;   //波特率高位控制
+  19   1             IE1 |= 0x01;      //开启SSI中断
+  20   1      }
+  21          
+  22          static void Send1_Byte(unsigned char TX1_DATA)
+  23          {
+  24   1          SSDAT =  TX1_DATA;
+  25   1          while(!Uart1SendFlag);
+  26   1          Uart1SendFlag = 0;
+  27   1      }
+  28          
+  29          static unsigned char Uart1_Send_Data(UART1_PROTOCOL_TX *p)
+  30          {
+  31   1             static unsigned char i;
+  32   1             for(i = 0 ; i < UART1_BUF_SIZE; i ++)
+  33   1             {
+  34   2                    Send1_Byte(p->UART1_Buf[i]);
+  35   2             }
+  36   1             return 0;
+  37   1      }
+  38          
+  39          
+  40          unsigned char Uart1_Protocol_Send(unsigned char Uart1_Addr,unsigned char Uart1_Id,unsigned int Uart1_TX_Da
+             -ta)
+  41          {
+  42   1             UART1_PROTOCOL_TX Uart1_buf;
+  43   1             memset(&Uart1_buf,0,sizeof(Uart1_buf));
+  44   1             Uart1_buf.Uart1_Data_Format.UART1_ADDR1 = Uart1_Addr;
+  45   1             Uart1_buf.Uart1_Data_Format.UART1_ID1     = Uart1_Id;
+  46   1             Uart1_buf.Uart1_Data_Format.UART1_DATA1 = UART1_Hight(Uart1_TX_Data);
+  47   1             Uart1_buf.Uart1_Data_Format.UART1_DATA2 = UART1_Low(Uart1_TX_Data);
+  48   1             Uart1_buf.Uart1_Data_Format.UART1_CHECKSUM = (unsigned char)(Uart1_buf.Uart1_Data_Format.UART1_ADDR1 + Ua
+             -rt1_buf.Uart1_Data_Format.UART1_ID1 + Uart1_buf.Uart1_Data_Format.UART1_DATA1 + Uart1_buf.Uart1_Data_Format.UART1_DATA2)
+             -;
+  49   1             Uart1_buf.Uart1_Data_Format.UART1_STOP1 = 0x0d;
+  50   1             Uart1_buf.Uart1_Data_Format.UART1_STOP2 = 0x0a;
+  51   1             return Uart1_Send_Data(&Uart1_buf);
+C51 COMPILER V9.59.0.0   BSP_UART1                                                         03/29/2019 21:21:59 PAGE 2   
+
+  52   1      }
+  53          
+  54          unsigned char Uart1_IF_REV_ALL(void)
+  55          {
+  56   1             if(Uart1_Rev_Num & 0x80)
+  57   1             { 
+  58   2                  Uart1_Rev_Num &= 0x00;
+  59   2                  return 1;
+  60   2             }
+  61   1             else
+  62   1             {
+  63   2                  return 0;
+  64   2             }
+  65   1      }
+  66          
+  67          void Uart1_Serial_Handle(void)
+  68          {
+  69   1             Uart1_Rev_Data = SSDAT;
+  70   1            if((Uart1_Rev_Num & 0x80) == 0x00)
+  71   1            {
+  72   2                    if(Uart1_Rev_Num & 0x40)
+  73   2                    {
+  74   3                           if(Uart1_Rev_Data == 0x0a)
+  75   3                           {
+  76   4                                  Uart1_Rev_Num |= 0x80;
+  77   4                           }
+  78   3                           else
+  79   3                           {
+  80   4                                  Uart1_Rev_Num &= 0x00;
+  81   4                           }
+  82   3                    }
+  83   2                    else
+  84   2                    {
+  85   3                           if(Uart1_Rev_Data == 0x0d)
+  86   3                           {
+  87   4                                  Uart1_Rev_Num |= 0x40;
+  88   4                           }
+  89   3                           else
+  90   3                           {
+  91   4                                  Uart1_Send_String[Uart1_Rev_Num] = Uart1_Rev_Data;
+  92   4                                  Uart1_Rev_Num ++;
+  93   4                                  if(Uart1_Send_String[0] != 0x55)
+  94   4                                  {
+  95   5                                         Uart1_Rev_Num &= 0x00;
+  96   5                                  }
+  97   4                                  if(Uart1_Rev_Num > UART1_REV_BUF_SIZE)
+  98   4                                  {
+  99   5                                         Uart1_Rev_Num &= 0x00;
+ 100   5                                  }
+ 101   4                           }
+ 102   3                    }
+ 103   2             }
+ 104   1      }
+ 105          
+ 106          
+ 107          
+ 108          
+ 109          
+ 110          
+ 111          
+ 112          
+
+C51 COMPILER V9.59.0.0   BSP_UART1                                                         03/29/2019 21:21:59 PAGE 3   
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    306    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     12      17
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

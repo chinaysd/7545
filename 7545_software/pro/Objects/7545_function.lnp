@@ -1,0 +1,13 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\system.obj",
+".\Objects\bsp_key.obj",
+".\Objects\bsp_led.obj",
+".\Objects\bsp_timer.obj",
+".\Objects\TimeOut.obj",
+".\Objects\bsp_uart0.obj",
+".\Objects\bsp_uart1.obj",
+".\Objects\bsp_pwm.obj",
+".\Objects\simulate_uart.obj" 
+TO ".\Objects\7545_function" 
+PRINT(".\Listings\7545_function.m51") RAMSIZE(256) 

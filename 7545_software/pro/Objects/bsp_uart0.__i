@@ -1,0 +1,1 @@
+"..\bsp\bsp_uart0.c" OPTIMIZE (8,SPEED) BROWSE INCDIR(..\bsp;..\lib;..\user) DEBUG OBJECTEXTEND PRINT(.\Listings\bsp_uart0.lst) TABS (7) OBJECT(.\Objects\bsp_uart0.obj)

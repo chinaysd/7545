@@ -1,0 +1,1 @@
+"..\bsp\simulate_uart.c" OPTIMIZE (8,SPEED) BROWSE INCDIR(..\bsp;..\lib;..\user) DEBUG OBJECTEXTEND PRINT(.\Listings\simulate_uart.lst) TABS (7) OBJECT(.\Objects\simulate_uart.obj)

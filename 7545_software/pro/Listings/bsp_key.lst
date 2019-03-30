@@ -1,0 +1,62 @@
+C51 COMPILER V9.59.0.0   BSP_KEY                                                           03/29/2019 21:13:07 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE BSP_KEY
+OBJECT MODULE PLACED IN .\Objects\bsp_key.obj
+COMPILER INVOKED BY: E:\MDK\C51\BIN\C51.EXE ..\bsp\bsp_key.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\bsp;..\lib;..\user) DEBU
+                    -G OBJECTEXTEND PRINT(.\Listings\bsp_key.lst) TABS(7) OBJECT(.\Objects\bsp_key.obj)
+
+line level    source
+
+   1          #include "bsp_key.h"
+   2          
+   3          
+   4          
+   5          void Key_Init(void)
+   6          {
+   7   1           P4CON &= ~0X08;
+   8   1           P4PH   |=  0X08;
+   9   1           
+  10   1           #if KEYF_ENABLE
+  11   1           INT1F |= 0X08;
+  12   1           #else
+                   INT1R |= 0X08;
+                   #endif
+  15   1             //外部中断优先级设置
+  16   1             IE  |= 0x05;  //0000 0x0x
+  17   1             IE1 |= 0x08;  //0000 x000  INT2使能
+  18   1             IP  |= 0X00;
+  19   1             IP1 |= 0X00;
+  20   1             EA = 1;
+  21   1      }
+  22          
+  23          unsigned char Key_Down(void)
+  24          {
+  25   1             #if 1
+  26   1             if(KEYD_STATUS == KEY1_PIN)
+  27   1             {
+  28   2                    return 1;
+  29   2             }
+  30   1             else
+  31   1             {
+  32   2                    return 0;
+  33   2             }
+  34   1             #else
+                    
+                     #endif
+  37   1      }
+  38          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     27    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,16 @@
+"STARTUP.obj",
+"main.obj",
+"ADC_Init.obj",
+"BTM.obj",
+"EX_Init.obj",
+"IAP_Init.obj",
+"IO_Init.obj",
+"SSI_Init.obj",
+"Timer_Init.obj",
+"Uart_Init.obj",
+"PWM_Init.obj",
+"Multiplication_Division.obj",
+"CMP_Init.obj" 
+TO "FullResources" 
+RAMSIZE(256) 
+CODE( 0x100 )
